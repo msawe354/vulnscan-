@@ -1,0 +1,88 @@
+{
+  "tool": {
+    "name": "vulnscan",
+    "version": "1.0.0"
+  },
+  "target": "https://example.com",
+  "started_at": "2026-02-11T11:02:31.104512+00:00",
+  "finished_at": "2026-02-11T11:02:37.945120+00:00",
+  "duration_seconds": 6.841,
+  "summary": {
+    "total": 6,
+    "by_severity": {
+      "critical": 0,
+      "high": 2,
+      "medium": 2,
+      "low": 1,
+      "info": 1
+    }
+  },
+  "stats": {
+    "requests": 68,
+    "checks": ["headers", "directories", "xss"],
+    "paths_checked": 62,
+    "xss_requests": 3,
+    "xss_skipped_forms": 0
+  },
+  "findings": [
+    {
+      "check": "directories",
+      "title": "Доступен ресурс: /.env",
+      "severity": "high",
+      "description": "Ресурс /.env отдаёт HTTP 200 и не является заглушкой soft-404. Такие файлы часто содержат секреты, дампы БД, исходный код или резервные копии — их наличие в открытом доступе критично.",
+      "url": "https://example.com/.env",
+      "evidence": "HTTP 200, 412 байт",
+      "remediation": "Закройте доступ на уровне веб-сервера (deny/return 404), удалите файлы из webroot, храните секреты в переменных окружения или в secret manager.",
+      "extra": {
+        "path": ".env",
+        "status": 200
+      }
+    },
+    {
+      "check": "directories",
+      "title": "Доступен ресурс: /.git/config",
+      "severity": "high",
+      "description": "Ресурс /.git/config отдаёт HTTP 200 и не является заглушкой soft-404. Такие файлы часто содержат секреты, дампы БД, исходный код или резервные копии — их наличие в открытом доступе критично.",
+      "url": "https://example.com/.git/config",
+      "evidence": "HTTP 200, 301 байт",
+      "remediation": "Закройте доступ на уровне веб-сервера (deny/return 404), удалите файлы из webroot, храните секреты в переменных окружения или в secret manager.",
+      "extra": {
+        "path": ".git/config",
+        "status": 200
+      }
+    },
+    {
+      "check": "headers",
+      "title": "Отсутствует Content-Security-Policy (CSP)",
+      "severity": "medium",
+      "description": "CSP не задан, поэтому браузер не ограничивает источники скриптов, стилей и фреймов. Любая инъекция HTML/JS (XSS, внедрение через сторонние виджеты) выполнится в контексте сайта и получит доступ к cookie и DOM.",
+      "url": "https://example.com/",
+      "remediation": "Добавьте заголовок, например: Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'. Начинайте с режима Report-Only, чтобы не сломать существующую функциональность."
+    },
+    {
+      "check": "headers",
+      "title": "Отсутствует X-Frame-Options",
+      "severity": "medium",
+      "description": "Страницу можно встроить в iframe на чужом сайте и невидимо наложить на неё элементы управления — классический clickjacking (кража кликов, подтверждение действий от имени пользователя).",
+      "url": "https://example.com/",
+      "remediation": "Добавьте X-Frame-Options: DENY (или SAMEORIGIN, если фреймы нужны) либо директиву CSP frame-ancestors 'none'."
+    },
+    {
+      "check": "headers",
+      "title": "Отсутствует X-Content-Type-Options",
+      "severity": "low",
+      "description": "Браузер может «угадать» MIME-тип (MIME sniffing) и исполнить загруженный файл как HTML/JS, даже если сервер отдал его как text/plain или изображение.",
+      "url": "https://example.com/",
+      "remediation": "Добавьте X-Content-Type-Options: nosniff ко всем ответам."
+    },
+    {
+      "check": "headers",
+      "title": "Заголовки раскрывают версии ПО",
+      "severity": "info",
+      "description": "Сервер сообщает технологический стек и версии. Это упрощает подбор эксплойтов под известные уязвимости (CVE).",
+      "url": "https://example.com/",
+      "evidence": "server: nginx/1.24.0",
+      "remediation": "Уберите или обезличьте заголовки Server / X-Powered-By на уровне веб-сервера и приложения."
+    }
+  ]
+}
